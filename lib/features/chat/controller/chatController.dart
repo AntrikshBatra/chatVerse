@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/common_used/enum/message_typpe.dart';
+import 'package:whatsapp_clone/common_used/providers/message_reply_provider.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/chat/repository/chatRepository.dart';
 import 'package:whatsapp_clone/models/chatContact.dart';
@@ -34,12 +35,15 @@ class ChatController {
     String text,
     String receiverUserID,
   ) async {
+    final messageReply = ref.read(messageReplyProvider);
     ref.read(UserDataProvider).whenData((value) =>
         chatRepository.sendTextMessage(
             context: context,
             text: text,
             receiverUserID: receiverUserID,
-            senderUser: value!));
+            senderUser: value!,
+            messageReply: messageReply));
+    ref.read(messageReplyProvider.state).update((state) => null);
   }
 
   void sendFileMessage(
@@ -48,6 +52,7 @@ class ChatController {
     String receiverUserID,
     MessageTypeEnum TypeEnum,
   ) async {
+    final messageReply = ref.read(messageReplyProvider);
     ref.read(UserDataProvider).whenData((value) =>
         chatRepository.sendFileMessage(
             context: context,
@@ -55,7 +60,10 @@ class ChatController {
             receiverUserID: receiverUserID,
             senderUserData: value!,
             ref: ref,
-            messageEnum: TypeEnum));
+            messageEnum: TypeEnum,
+            messageReply: messageReply));
+
+    ref.read(messageReplyProvider.state).update((state) => null);
   }
 
   void sendGIFMessage(
@@ -64,12 +72,15 @@ class ChatController {
     String gifUrlPart = GIFUrl.substring(gifUrlPartIndex);
     String newGIFUrl = 'https://i.giphy.com/media/$gifUrlPart/200.gif';
     print(newGIFUrl);
+    final messageReply = ref.read(messageReplyProvider);
     ref.read(UserDataProvider).whenData((value) {
       chatRepository.sendGIFMessage(
           context: context,
           GIFUrl: newGIFUrl,
           receiverUserID: receiverUserID,
-          senderUser: value!);
+          senderUser: value!,
+          messageReply: messageReply);
     });
+    ref.read(messageReplyProvider.state).update((state) => null);
   }
 }

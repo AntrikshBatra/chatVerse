@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:whatsapp_clone/common_used/enum/message_typpe.dart';
+import 'package:whatsapp_clone/common_used/providers/message_reply_provider.dart';
 import 'package:whatsapp_clone/common_used/widgets/loader.dart';
 import 'package:whatsapp_clone/features/chat/controller/chatController.dart';
 import 'package:whatsapp_clone/info.dart';
@@ -26,6 +27,12 @@ class _ChatListState extends ConsumerState<ChatList> {
     // TODO: implement dispose
     super.dispose();
     messageController.dispose();
+  }
+
+  void onMessageSwipe(String Message, bool isMe, MessageTypeEnum MessageEnum) {
+    ref
+        .read(messageReplyProvider.state)
+        .update((state) => MessageReply(Message, isMe, MessageEnum));
   }
 
   @override
@@ -54,12 +61,22 @@ class _ChatListState extends ConsumerState<ChatList> {
                     message: messageData.text,
                     date: messages[index]["time"].toString(),
                     typeEnum: messageData.type,
+                    repliedText: messageData.repliedMessage,
+                    username: messageData.repliedTo,
+                    repliedMessageType: messageData.repliedMessageType,
+                    onLeftswipe: () => onMessageSwipe(
+                        messageData.text, true, messageData.type),
                   );
                 }
                 return senderChatCard(
                   message: messageData.text,
                   date: messages[index]["time"].toString(),
                   typeEnum: messageData.type,
+                  repliedText: messageData.repliedMessage,
+                  username: messageData.repliedTo,
+                  repliedMessageType: messageData.repliedMessageType,
+                    onRightswipe: () => onMessageSwipe(
+                        messageData.text, false, messageData.type),
                 );
               });
         });
