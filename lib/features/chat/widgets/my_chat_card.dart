@@ -7,6 +7,7 @@ import 'package:whatsapp_clone/features/chat/widgets/displayFiles.dart';
 class MyChatCard extends StatelessWidget {
   final message;
   final date;
+  final bool isSeen;
   final MessageTypeEnum typeEnum;
   final VoidCallback onLeftswipe;
   final String repliedText;
@@ -20,7 +21,8 @@ class MyChatCard extends StatelessWidget {
       required this.onLeftswipe,
       required this.repliedText,
       required this.username,
-      required this.repliedMessageType});
+      required this.repliedMessageType,
+      required this.isSeen});
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +56,9 @@ class MyChatCard extends StatelessWidget {
                           username,
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 3,),
+                        const SizedBox(
+                          height: 3,
+                        ),
                         Container(
                           padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -66,7 +70,9 @@ class MyChatCard extends StatelessWidget {
                             typeEnum: repliedMessageType,
                           ),
                         ),
-                        const SizedBox(height: 8,)
+                        const SizedBox(
+                          height: 8,
+                        )
                       ],
                       DisplayFile(
                         message: message,
@@ -88,8 +94,8 @@ class MyChatCard extends StatelessWidget {
                         width: 5,
                       ),
                       Icon(
-                        Icons.done_all,
-                        color: Colors.grey,
+                        isSeen ? Icons.done_all : Icons.done,
+                        color: isSeen ? Colors.blue : Colors.grey,
                         size: 14,
                       )
                     ],

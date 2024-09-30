@@ -295,4 +295,35 @@ class ChatRepository {
       showSnackBar(context: context, content: e.toString());
     }
   }
+
+  void setChatSeenMessage(
+      BuildContext context, String receiverUserID, String messageID) async {
+    try {
+       //users=>sender ID=>receiver ID=>messages=>message ID=>store message----->store message for other user
+    await firestore
+        .collection('users')
+        .doc(auth.currentUser!.uid)
+        .collection('chats')
+        .doc(receiverUserID)
+        .collection('messages')
+        .doc(messageID)
+        .update({
+          'isSeen':true
+        });
+
+    //users=>receiver ID=>sender ID=>messages=>message ID=>store message----->store message for other user
+    await firestore
+        .collection('users')
+        .doc(receiverUserID)
+        .collection('chats')
+        .doc(auth.currentUser!.uid)
+        .collection('messages')
+        .doc(messageID)
+        .update({
+          'isSeen':true
+        });
+    } catch (ex) {
+      showSnackBar(context: context, content: ex.toString());
+    }
+  }
 }
