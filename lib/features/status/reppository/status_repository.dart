@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
@@ -25,74 +26,122 @@ class StatusRepository {
   StatusRepository(
       {required this.firestore, required this.auth, required this.ref});
 
-  void UploadStatus(
-      {required String username,
-      required File ImageUpload,
-      required String profilePic,
-      required String phoneNumber,
-      required BuildContext context}) async {
-    try {
-      var statusID = const Uuid().v1();
-      String Uid = auth.currentUser!.uid;
-      String imageUrl = await ref
-          .read(FirebasestoragerepoProvider)
-          .storeFiletoFirebase('status/$statusID$Uid', ImageUpload);
+  void uploadStatus({
+  required String username,
+  required String profilePic,
+  required String phoneNumber,
+  required File statusImage,
+  required BuildContext context,
+}) async {
+  try {
+    var statusId = const Uuid().v1();
+    String uid = auth.currentUser!.uid;
+    String imageUrl =
+        await ref.read(FirebasestoragerepoProvider).storeFiletoFirebase(
+              '/status/$statusId$uid',
+              statusImage,
+            );
+    List<Contact> contacts = [];
+    if (await FlutterContacts.requestPermission()) {
+      contacts = await FlutterContacts.getContacts(withProperties: true);
+    }
 
-      List<Contact> contacts = [];
+    List<String> uidWhoCanSee = [];
 
-      if (await FlutterContacts.requestPermission()) {
-        contacts = await FlutterContacts.getContacts(
-            withProperties: true, withThumbnail: true);
-      }
-
-      List<String> uidWhoCnSee = [];
-      for (int i = 0; i < contacts.length; i++) {
-        var userDataFirebase = await firestore
-            .collection('users')
-            .where('phoneNumber',
-                isEqualTo: contacts[i].phones[0].number.replaceAll(' ', ''))
-            .get();
-
-        if (userDataFirebase.docs.isNotEmpty) {
-          var UserData = UserModel.fromMap(userDataFirebase.docs[0].data());
-          uidWhoCnSee.add(UserData.uid);
-        }
-      }
-
-      List<String> statusImageUrls = [];
-      var statusSnapshots = await firestore
-          .collection('status')
-          .where('uid', isEqualTo: auth.currentUser!.uid)
-          .where('createdAt',
-              isLessThan: DateTime.now().subtract(Duration(hours: 24)))
+    // Get the list of users who can see the status
+    for (int i = 0; i < contacts.length; i++) {
+      var userDataFirebase = await firestore
+          .collection('users')
+          .where(
+            'phoneNumber',
+            isEqualTo: contacts[i].phones[0].number.replaceAll(' ', ''),
+          )
           .get();
 
-      if (statusSnapshots.docs.isNotEmpty) {
-        Status status = Status.fromMap(statusSnapshots.docs[0].data());
-        statusImageUrls = status.photoUrl;
-        statusImageUrls.add(imageUrl);
-        await firestore
-            .collection('status')
-            .doc(statusSnapshots.docs[0].id)
-            .update({'photoUrl': statusImageUrls});
-        return;
-      } else {
-        statusImageUrls = [imageUrl];
+      if (userDataFirebase.docs.isNotEmpty) {
+        var userData = UserModel.fromMap(userDataFirebase.docs[0].data());
+        uidWhoCanSee.add(userData.uid);
       }
+    }
+
+    // Check if the current user already has a status document
+    var statusesSnapshot = await firestore
+        .collection('status')
+        .where('Uid', isEqualTo: uid)
+        .get();
+
+    List<String> statusImageUrls = [];
+
+    if (statusesSnapshot.docs.isNotEmpty) {
+      // If a status document exists, update the existing one
+      Status status = Status.fromMap(statusesSnapshot.docs[0].data());
+      statusImageUrls = status.photoUrl;
+      statusImageUrls.add(imageUrl);
+
+      // Update the existing document with the new status image
+      await firestore.collection('status').doc(statusesSnapshot.docs[0].id).update({
+        'photoUrl': statusImageUrls,
+        'createdAt': DateTime.now(),  // Update the timestamp
+      });
+    } else {
+      // If no status document exists, create a new one
+      statusImageUrls = [imageUrl];
 
       Status status = Status(
-          Uid: Uid,
-          Username: username,
-          phoneNumber: phoneNumber,
-          photoUrl: statusImageUrls,
-          createdAt: DateTime.now(),
-          profilePic: profilePic,
-          statusID: statusID,
-          whoCanSee: uidWhoCnSee);
+        Uid: uid,
+        Username: username,
+        phoneNumber: phoneNumber,
+        photoUrl: statusImageUrls,
+        createdAt: DateTime.now(),
+        profilePic: profilePic,
+        statusID: statusId,
+        whoCanSee: uidWhoCanSee,
+      );
 
-      await firestore.collection('status').doc(statusID).set(status.toMap());
+      // Create a new document for the user's status
+      await firestore.collection('status').doc(statusId).set(status.toMap());
+    }
+  } catch (e) {
+    showSnackBar(context: context, content: e.toString());
+  }
+}
+
+  Future<List<Status>> getStatus(BuildContext context) async {
+    List<Status> statusData = [];
+    try {
+      List<Contact> contacts = [];
+      if (await FlutterContacts.requestPermission()) {
+        contacts = await FlutterContacts.getContacts(withProperties: true);
+      }
+      for (int i = 0; i < contacts.length; i++) {
+        var statusesSnapshot = await firestore
+            .collection('status')
+            .where(
+              'phoneNumber',
+              isEqualTo: contacts[i].phones[0].number.replaceAll(
+                    ' ',
+                    '',
+                  ),
+            )
+            .where('createdAt',
+                isGreaterThan: Timestamp.fromDate(
+                    DateTime.now().subtract(const Duration(hours: 24))))
+            .get();
+
+        //.get();
+        //print(statusesSnapshot.docs.length);
+        for (var tempData in statusesSnapshot.docs) {
+          print(tempData.data());
+          Status tempStatus = Status.fromMap(tempData.data());
+          if (tempStatus.whoCanSee.contains(auth.currentUser!.uid)) {
+            statusData.add(tempStatus);
+          }
+        }
+      }
     } catch (e) {
+      if (kDebugMode) print(e);
       showSnackBar(context: context, content: e.toString());
     }
+    return statusData;
   }
 }

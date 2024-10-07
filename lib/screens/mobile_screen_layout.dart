@@ -108,7 +108,7 @@ class _MobileLayoutState extends ConsumerState<MobileLayout>
             },
             backgroundColor: tabColor,
             child: Icon(
-              Icons.comment,
+              tabBarController.index == 0 ? Icons.comment : Icons.done,
               color: Colors.white,
             ),
           ),

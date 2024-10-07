@@ -1,5 +1,7 @@
 
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Status {
   final String Uid;
   final String Username;
@@ -36,13 +38,13 @@ class Status {
 
   factory Status.fromMap(Map<String, dynamic> map) {
      return Status(
-      Uid: map['uid'] ?? '',
-      Username: map['username'] ?? '',
+      Uid: map['Uid'] ?? '',
+      Username: map['Username'] ?? '',
       phoneNumber: map['phoneNumber'] ?? '',
       photoUrl: List<String>.from(map['photoUrl']),
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
+      createdAt: (map['createdAt'] as Timestamp).toDate(),
       profilePic: map['profilePic'] ?? '',
-      statusID: map['statusId'] ?? '',
+      statusID: map['statusID'] ?? '',
       whoCanSee: List<String>.from(map['whoCanSee']),
     );
   }

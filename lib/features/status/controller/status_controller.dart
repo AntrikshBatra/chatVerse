@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 
 import 'package:whatsapp_clone/features/status/reppository/status_repository.dart';
+import 'package:whatsapp_clone/models/status_model.dart';
 
 final StatusControllerProvider = Provider((ref) {
   final StatusRepository statusRepository = ref.read(StatusRepositoryProvider);
@@ -22,12 +23,17 @@ class StatusController {
 
   void addStatus(File file, BuildContext context) {
     ref.watch(UserDataProvider).whenData((value) {
-      statusRepository.UploadStatus(
+      statusRepository.uploadStatus(
           username: value!.name,
-          ImageUpload: file,
+          statusImage: file,
           profilePic: value.profilePic,
           phoneNumber: value.phoneNumber,
           context: context);
     });
+  }
+
+  Future<List<Status>> getStatus(BuildContext context) async {
+    List<Status> statuses = await statusRepository.getStatus(context);
+    return statuses;
   }
 }

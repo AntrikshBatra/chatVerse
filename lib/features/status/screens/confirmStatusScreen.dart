@@ -28,7 +28,7 @@ class ConfirmStatusScreen extends ConsumerWidget {
         onPressed: () => addStatus(ref, context),
         backgroundColor: tabColor,
         child: Icon(
-          Icons.done,
+          Icons.upload,
           color: Colors.white,
         ),
       ),
