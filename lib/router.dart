@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:whatsapp_clone/common_used/widgets/error.dart';
+import 'package:whatsapp_clone/features/Group/screens/createGroupScreen.dart';
 import 'package:whatsapp_clone/features/auth/screens/login_screen.dart';
 import 'package:whatsapp_clone/features/auth/screens/otp_auth.dart';
 import 'package:whatsapp_clone/features/auth/screens/user_info.dart';
@@ -38,13 +39,16 @@ Route<dynamic> generateRoute(RouteSettings settings) {
       return MaterialPageRoute(
           builder: (context) => ConfirmStatusScreen(
                 file: file,
-              ));       
+              ));
     case StatusStoryScreen.route:
       final status = settings.arguments as Status;
       return MaterialPageRoute(
           builder: (context) => StatusStoryScreen(
                 status: status,
-              ));                    
+              ));
+    case CreateGroup.route:
+      //final createGroup = settings.arguments as Status;
+      return MaterialPageRoute(builder: (context) => const CreateGroup());
     default:
       return MaterialPageRoute(
           builder: (context) => Scaffold(
