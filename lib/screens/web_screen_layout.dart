@@ -36,7 +36,7 @@ class WebLayout extends StatelessWidget {
             child: Column(
               children: [
                 WebAppBar(),
-                Expanded(child: ChatList(receiverUserID: '',)),
+                Expanded(child: ChatList(receiverUserID: '', isGroupChat: false,)),
                 Container(
                   height: MediaQuery.of(context).size.height * 0.10,
                   padding: EdgeInsets.all(10),

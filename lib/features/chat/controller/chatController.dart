@@ -7,6 +7,7 @@ import 'package:whatsapp_clone/common_used/enum/message_typpe.dart';
 import 'package:whatsapp_clone/common_used/providers/message_reply_provider.dart';
 import 'package:whatsapp_clone/features/auth/controller/auth_controller.dart';
 import 'package:whatsapp_clone/features/chat/repository/chatRepository.dart';
+import 'package:whatsapp_clone/models/GroupModel.dart';
 import 'package:whatsapp_clone/models/chatContact.dart';
 import 'package:whatsapp_clone/models/message.dart';
 import 'package:whatsapp_clone/models/userModel.dart';
@@ -26,15 +27,20 @@ class ChatController {
     return chatRepository.getMessages(receiverUserID);
   }
 
+  Stream<List<Message>> getGroupMessages(String receiverUserID) {
+    return chatRepository.getGroupMessages(receiverUserID);
+  }
+
   Stream<List<ChatContact>> chatContacts() {
     return chatRepository.getChatContacts();
   }
 
-  void sendTextMessage(
-    BuildContext context,
-    String text,
-    String receiverUserID,
-  ) async {
+  Stream<List<Group>> chatGroups() {
+    return chatRepository.getChatGroups();
+  }
+
+  void sendTextMessage(BuildContext context, String text, String receiverUserID,
+      bool isGroupChat) async {
     final messageReply = ref.read(messageReplyProvider);
     ref.read(UserDataProvider).whenData((value) =>
         chatRepository.sendTextMessage(
@@ -42,16 +48,13 @@ class ChatController {
             text: text,
             receiverUserID: receiverUserID,
             senderUser: value!,
-            messageReply: messageReply));
+            messageReply: messageReply,
+            isGroupChat: isGroupChat));
     ref.read(messageReplyProvider.state).update((state) => null);
   }
 
-  void sendFileMessage(
-    BuildContext context,
-    File file,
-    String receiverUserID,
-    MessageTypeEnum TypeEnum,
-  ) async {
+  void sendFileMessage(BuildContext context, File file, String receiverUserID,
+      MessageTypeEnum TypeEnum, bool isGroupChat) async {
     final messageReply = ref.read(messageReplyProvider);
     ref.read(UserDataProvider).whenData((value) =>
         chatRepository.sendFileMessage(
@@ -61,13 +64,14 @@ class ChatController {
             senderUserData: value!,
             ref: ref,
             messageEnum: TypeEnum,
-            messageReply: messageReply));
+            messageReply: messageReply,
+            isGroupChat: isGroupChat));
 
     ref.read(messageReplyProvider.state).update((state) => null);
   }
 
-  void sendGIFMessage(
-      BuildContext context, String GIFUrl, String receiverUserID) {
+  void sendGIFMessage(BuildContext context, String GIFUrl,
+      String receiverUserID, bool isGroupChat) {
     int gifUrlPartIndex = GIFUrl.lastIndexOf('-') + 1;
     String gifUrlPart = GIFUrl.substring(gifUrlPartIndex);
     String newGIFUrl = 'https://i.giphy.com/media/$gifUrlPart/200.gif';
@@ -79,7 +83,8 @@ class ChatController {
           GIFUrl: newGIFUrl,
           receiverUserID: receiverUserID,
           senderUser: value!,
-          messageReply: messageReply);
+          messageReply: messageReply,
+          isGroupChat: isGroupChat);
     });
     ref.read(messageReplyProvider.state).update((state) => null);
   }

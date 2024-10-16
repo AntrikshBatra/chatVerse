@@ -14,7 +14,9 @@ import 'package:whatsapp_clone/features/chat/widgets/sender_chat_card.dart';
 
 class ChatList extends ConsumerStatefulWidget {
   final String receiverUserID;
-  const ChatList({super.key, required this.receiverUserID});
+  final bool isGroupChat;
+  const ChatList(
+      {super.key, required this.receiverUserID, required this.isGroupChat});
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ChatListState();
@@ -38,8 +40,13 @@ class _ChatListState extends ConsumerState<ChatList> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<List<Message>>(
-        stream:
-            ref.read(ChatControllerProvider).getMessages(widget.receiverUserID),
+        stream: widget.isGroupChat
+            ? ref
+                .read(ChatControllerProvider)
+                .getGroupMessages(widget.receiverUserID)
+            : ref
+                .read(ChatControllerProvider)
+                .getMessages(widget.receiverUserID),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             print('yufgcvhbjkhgfcdxcgh');
@@ -64,16 +71,15 @@ class _ChatListState extends ConsumerState<ChatList> {
                 if (messageData.senderID ==
                     FirebaseAuth.instance.currentUser!.uid) {
                   return MyChatCard(
-                    message: messageData.text,
-                    date: messages[index]["time"].toString(),
-                    typeEnum: messageData.type,
-                    repliedText: messageData.repliedMessage,
-                    username: messageData.repliedTo,
-                    repliedMessageType: messageData.repliedMessageType,
-                    onLeftswipe: () => onMessageSwipe(
-                        messageData.text, true, messageData.type),
-                    isSeen:messageData.isSeen    
-                  );
+                      message: messageData.text,
+                      date: messages[index]["time"].toString(),
+                      typeEnum: messageData.type,
+                      repliedText: messageData.repliedMessage,
+                      username: messageData.repliedTo,
+                      repliedMessageType: messageData.repliedMessageType,
+                      onLeftswipe: () => onMessageSwipe(
+                          messageData.text, true, messageData.type),
+                      isSeen: messageData.isSeen);
                 }
                 return senderChatCard(
                   message: messageData.text,
