@@ -1,6 +1,11 @@
-# whatsapp_clone
+# ChateVerse
 
-A new Flutter project.
+● Developed a Flutter-based messaging app with Firebase Realtime Database for real-time communication and 
+multimedia sharing via third-party APIs.
+● Integrated Agora RTC SDK for low-latency video calling with adaptive bitrate streaming.
+● Implemented OTP-based authentication using Firebase and designed scalable group chat with Firestore.
+● Leveraged Riverpod for state management and Firestore for real-time backend synchronization.
+
 
 ## Getting Started
 
